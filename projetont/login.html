@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:Arial, Helvetica, sans-serif;
+            background:#eef5ef;
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+        }
+
+        /* CABEÇALHO */
+
+        header{
+            background:#2e8b3c;
+            color:white;
+            text-align:center;
+            padding:30px;
+            border-bottom:3px solid #1f6b2b;
+        }
+
+        header h1{
+            font-size:2.5rem;
+        }
+
+        /* CONTEÚDO */
+
+        .container{
+            flex:1;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:40px;
+        }
+
+        .card-login{
+            width:100%;
+            max-width:500px;
+            background:white;
+            border:2px solid #3ca34a;
+            border-radius:15px;
+            padding:40px;
+        }
+
+        .card-login h2{
+            text-align:center;
+            color:#19692c;
+            margin-bottom:30px;
+            font-size:2rem;
+        }
+
+        .campo{
+            margin-bottom:20px;
+        }
+
+        .campo input{
+            width:100%;
+            padding:15px;
+            border:2px solid #3ca34a;
+            border-radius:8px;
+            font-size:16px;
+        }
+
+        .campo input:focus{
+            outline:none;
+            border-color:#19692c;
+        }
+
+        .btn-login{
+            width:100%;
+            padding:15px;
+            border:none;
+            border-radius:8px;
+            background:#3ca34a;
+            color:white;
+            font-size:16px;
+            font-weight:bold;
+            cursor:pointer;
+            transition:0.3s;
+        }
+
+        .btn-login:hover{
+            background:#2f853b;
+        }
+
+        .cadastro-link{
+            text-align:center;
+            margin-top:20px;
+        }
+
+        .cadastro-link a{
+            color:#19692c;
+            text-decoration:none;
+            font-weight:bold;
+        }
+
+        .cadastro-link a:hover{
+            text-decoration:underline;
+        }
+
+        /* RODAPÉ */
+
+        footer{
+            background:#d9ecd9;
+            border-top:4px solid #19692c;
+            text-align:center;
+            padding:20px;
+            color:#19692c;
+            font-weight:bold;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Sistema de Projetos de Lei</h1>
+</header>
+
+<div class="container">
+
+    <div class="card-login">
+
+        <h2>Entrar</h2>
+
+        <form method="POST">
+
+            <!-- Django -->
+            <!-- {% csrf_token %} -->
+
+            <div class="campo">
+                <input
+                    type="text"
+                    name="usuario"
+                    placeholder="Usuário"
+                    required>
+            </div>
+
+            <div class="campo">
+                <input
+                    type="password"
+                    name="senha"
+                    placeholder="Senha"
+                    required>
+            </div>
+
+            <button type="submit" class="btn-login">
+                Entrar
+            </button>
+
+        </form>
+
+        <div class="cadastro-link">
+            Não possui conta?
+            <a href="cadastro.html">Cadastre-se</a>
+        </div>
+
+    </div>
+
+</div>
+
+<footer>
+    © 2026 - Todos os direitos reservados.
+</footer>
+
+</body>
+</html>

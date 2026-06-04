@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil</title>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:Arial, Helvetica, sans-serif;
+            background:#eef5ef;
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+        }
+
+        /* CABEÇALHO */
+
+        header{
+    background:#2e8b3c;
+    color:white;
+    text-align:center;
+    padding:30px;
+    border-bottom:3px solid #1f6b2b;
+    position:relative;
+}
+
+header h1{
+    font-size:2.5rem;
+}
+
+.btn-voltar{
+    position:absolute;
+    right:25px;
+    top:50%;
+    transform:translateY(-50%);
+
+    color:white;
+    text-decoration:none;
+    font-weight:bold;
+
+    border:2px solid white;
+    border-radius:8px;
+
+    padding:10px 20px;
+
+    transition:0.3s;
+}
+
+.btn-voltar:hover{
+    background:white;
+    color:#2e8b3c;
+}
+
+        /* CONTEÚDO */
+
+        .container{
+            width:80%;
+            max-width:1200px;
+            margin:50px auto;
+        }
+
+        /* PERFIL */
+
+        .perfil{
+            background:white;
+            border:2px solid #3ca34a;
+            border-radius:15px;
+            padding:40px;
+            display:flex;
+            align-items:center;
+            gap:40px;
+            margin-bottom:40px;
+        }
+
+        .foto-perfil{
+            width:150px;
+            height:150px;
+            border-radius:50%;
+            border:4px solid #3ca34a;
+            object-fit:cover;
+        }
+
+        .dados-usuario h2{
+            color:#19692c;
+            font-size:2rem;
+            margin-bottom:10px;
+        }
+
+        .dados-usuario p{
+            font-size:1.1rem;
+            color:#555;
+        }
+
+        /* FAVORITOS */
+
+        .favoritos{
+            background:white;
+            border:2px solid #3ca34a;
+            border-radius:15px;
+            padding:40px;
+        }
+
+        .favoritos h2{
+            color:#19692c;
+            margin-bottom:25px;
+            font-size:2rem;
+        }
+
+        .projeto{
+            border-left:6px solid #3ca34a;
+            background:#f8fff8;
+            padding:20px;
+            margin-bottom:20px;
+            border-radius:8px;
+        }
+
+        .projeto h3{
+            color:#19692c;
+            margin-bottom:10px;
+        }
+
+        .projeto p{
+            margin-bottom:5px;
+        }
+
+        .status{
+            font-weight:bold;
+            color:#2e8b3c;
+        }
+
+        /* RODAPÉ */
+
+        footer{
+            margin-top:auto;
+            background:#d9ecd9;
+            border-top:4px solid #19692c;
+            text-align:center;
+            padding:20px;
+            color:#19692c;
+            font-weight:bold;
+        }
+
+        /* RESPONSIVO */
+
+        @media(max-width:768px){
+
+            .perfil{
+                flex-direction:column;
+                text-align:center;
+            }
+
+            .container{
+                width:95%;
+            }
+        }
+
+    </style>
+</head>
+<body>
+<header>
+
+    <h1>Meu Perfil</h1>
+
+    <a href="principal.html" class="btn-voltar">
+        Página Principal
+    </a>
+
+</header>
+
+    <div class="container">
+
+        <!-- DADOS DO USUÁRIO -->
+
+        <div class="perfil">
+
+            <img
+                src="https://via.placeholder.com/150"
+                alt="Foto de Perfil"
+                class="foto-perfil">
+
+            <div class="dados-usuario">
+                <h2>João da Silva</h2>
+                <p>Usuário cadastrado na plataforma de acompanhamento legislativo.</p>
+            </div>
+
+        </div>
+
+        <!-- PROJETOS FAVORITADOS -->
+
+        <div class="favoritos">
+
+            <h2>Projetos Favoritados</h2>
+
+            <div class="projeto">
+                <h3>PL 1234/2026</h3>
+                <p>Cria programa nacional de incentivo à educação digital.</p>
+                <p class="status">Status: Em tramitação</p>
+            </div>
+
+            <div class="projeto">
+                <h3>PL 5678/2026</h3>
+                <p>Dispõe sobre transparência em gastos públicos.</p>
+                <p class="status">Status: Aprovado na comissão</p>
+            </div>
+
+            <div class="projeto">
+                <h3>PL 9012/2026</h3>
+                <p>Incentiva o desenvolvimento de tecnologias sustentáveis.</p>
+                <p class="status">Status: Aguardando votação</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+        © 2026 - Todos os direitos reservados.
+    </footer>
+
+</body>
+</html>
