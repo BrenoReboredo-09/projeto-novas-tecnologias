@@ -1,0 +1,284 @@
+{% extends 'camara_app/base.html' %}
+{% block titulo %}Pesquisar Projetos de Lei{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container { width: 85%; max-width: 1200px; margin: 40px auto; }
+
+    /* Barra de busca */
+    .busca-card {
+        background: white;
+        border: 2px solid #3ca34a;
+        border-radius: 15px;
+        padding: 35px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .busca-card h2 { color: #19692c; margin-bottom: 20px; font-size: 1.6rem; }
+    .busca-form {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        gap: 12px;
+        align-items: end;
+    }
+    .busca-form input,
+    .busca-form select {
+        padding: 13px 16px;
+        border: 2px solid #3ca34a;
+        border-radius: 8px;
+        font-size: 15px;
+        width: 100%;
+    }
+    .busca-form input:focus,
+    .busca-form select:focus { outline: none; border-color: #19692c; }
+    .btn-buscar {
+        padding: 13px 28px;
+        background: #3ca34a;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+        white-space: nowrap;
+    }
+    .btn-buscar:hover { background: #2f853b; }
+
+    /* Resultados */
+    .resultados-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        color: #555;
+    }
+    .spinner {
+        display: none;
+        text-align: center;
+        padding: 40px;
+        color: #3ca34a;
+        font-size: 1.1rem;
+    }
+    .projeto-card {
+        background: white;
+        border: 2px solid #d4e8d4;
+        border-left: 6px solid #3ca34a;
+        border-radius: 10px;
+        padding: 22px 25px;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        transition: box-shadow 0.2s;
+    }
+    .projeto-card:hover { box-shadow: 0 4px 15px rgba(60,163,74,0.2); }
+    .projeto-info h3 { color: #19692c; margin-bottom: 8px; font-size: 1.1rem; }
+    .projeto-info h3 a { color: inherit; text-decoration: none; }
+    .projeto-info h3 a:hover { text-decoration: underline; }
+    .projeto-info p { color: #444; margin-bottom: 5px; font-size: 0.95rem; line-height: 1.4; }
+    .situacao { font-size: 0.85rem; color: #666; }
+    .situacao strong { color: #2e8b3c; }
+    .btn-favoritar {
+        background: transparent;
+        border: 2px solid #3ca34a;
+        color: #3ca34a;
+        border-radius: 8px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        transition: 0.2s;
+        flex-shrink: 0;
+    }
+    .btn-favoritar:hover { background: #3ca34a; color: white; }
+    .btn-favoritar.favoritado { background: #3ca34a; color: white; }
+
+    /* Paginação */
+    .paginacao { display: flex; gap: 10px; justify-content: center; margin-top: 25px; }
+    .paginacao button {
+        padding: 10px 20px;
+        border: 2px solid #3ca34a;
+        background: white;
+        color: #3ca34a;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+    .paginacao button:hover { background: #3ca34a; color: white; }
+    .paginacao button:disabled { opacity: 0.4; cursor: default; }
+
+    .erro { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; }
+    .vazio { text-align: center; padding: 40px; color: #777; font-style: italic; }
+
+    @media (max-width: 768px) {
+        .busca-form { grid-template-columns: 1fr; }
+        .container { width: 95%; }
+    }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+
+    <div class="busca-card">
+        <h2>🔍 Pesquisar Projetos de Lei</h2>
+        <div class="busca-form">
+            <input type="text" id="inp-keywords" placeholder="Palavra-chave (ex: reforma tributária)">
+            <select id="inp-tipo">
+                <option value="">Todos os tipos</option>
+                <option value="PL">PL – Projeto de Lei</option>
+                <option value="PEC">PEC – Emenda Constitucional</option>
+                <option value="MPV">MPV – Medida Provisória</option>
+                <option value="PDL">PDL – Decreto Legislativo</option>
+                <option value="PLP">PLP – Lei Complementar</option>
+            </select>
+            <input type="number" id="inp-ano" placeholder="Ano" min="1990" max="2026">
+            <button class="btn-buscar" onclick="pesquisar(1)">Pesquisar</button>
+        </div>
+    </div>
+
+    <div id="spinner" class="spinner">⏳ Buscando projetos...</div>
+
+    <div id="resultados-wrap" style="display:none">
+        <div class="resultados-header">
+            <span id="total-label"></span>
+        </div>
+        <div id="lista-projetos"></div>
+        <div class="paginacao">
+            <button id="btn-ant" onclick="mudarPagina(-1)" disabled>← Anterior</button>
+            <span id="pag-label" style="line-height:2.5;color:#555"></span>
+            <button id="btn-prox" onclick="mudarPagina(1)">Próxima →</button>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let paginaAtual = 1;
+    const ITENS_POR_PAG = 15;
+    let temProxima = false;
+
+    // IDs dos projetos já favoritados pelo usuário (vindos do Django)
+    const favoritosDoUsuario = new Set([
+        {% for fav in favoritos_ids %}"{{ fav }}"{% if not forloop.last %},{% endif %}{% endfor %}
+    ]);
+
+    async function pesquisar(pagina = 1) {
+        paginaAtual = pagina;
+        const keywords = document.getElementById('inp-keywords').value.trim();
+        const siglaTipo = document.getElementById('inp-tipo').value;
+        const ano = document.getElementById('inp-ano').value;
+
+        document.getElementById('spinner').style.display = 'block';
+        document.getElementById('resultados-wrap').style.display = 'none';
+
+        try {
+            const { dados } = await camaraAPI.buscarProposicoes({
+                keywords, siglaTipo, ano,
+                pagina,
+                itens: ITENS_POR_PAG,
+            });
+
+            renderResultados(dados, pagina);
+        } catch (err) {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('resultados-wrap').style.display = 'block';
+            document.getElementById('lista-projetos').innerHTML =
+                `<div class="erro">Erro ao buscar: ${err.message}</div>`;
+        }
+    }
+
+    function renderResultados(dados, pagina) {
+        document.getElementById('spinner').style.display = 'none';
+        document.getElementById('resultados-wrap').style.display = 'block';
+
+        const lista = document.getElementById('lista-projetos');
+        temProxima = dados.length === ITENS_POR_PAG;
+
+        document.getElementById('total-label').textContent =
+            dados.length ? `${dados.length} projetos encontrados (página ${pagina})` : '';
+        document.getElementById('pag-label').textContent = `Página ${pagina}`;
+        document.getElementById('btn-ant').disabled = pagina <= 1;
+        document.getElementById('btn-prox').disabled = !temProxima;
+
+        if (!dados.length) {
+            lista.innerHTML = '<div class="vazio">Nenhum projeto encontrado para essa pesquisa.</div>';
+            return;
+        }
+
+        lista.innerHTML = dados.map(p => {
+            const titulo = `${p.siglaTipo || ''} ${p.numero || ''}/${p.ano || ''}`.trim();
+            const situacao = p.statusProposicao?.descricaoSituacao || '—';
+            const isFav = favoritosDoUsuario.has(String(p.id));
+            const favBtn = `{% if user.is_authenticated %}
+                <button class="btn-favoritar ${isFav ? 'favoritado' : ''}"
+                    id="fav-btn-${p.id}"
+                    onclick="toggleFavorito(${p.id}, '${p.siglaTipo}', ${p.numero}, ${p.ano}, this)">
+                    ${isFav ? '★ Favoritado' : '☆ Favoritar'}
+                </button>
+            {% else %}
+                <a href="{% url 'login' %}" style="font-size:0.85rem;color:#3ca34a;">Faça login para favoritar</a>
+            {% endif %}`;
+
+            return `
+            <div class="projeto-card">
+                <div class="projeto-info">
+                    <h3><a href="/proposicao/${p.id}/">${titulo}</a></h3>
+                    <p>${p.ementa || '—'}</p>
+                    <p class="situacao">Situação: <strong>${situacao}</strong></p>
+                </div>
+                ${favBtn}
+            </div>`;
+        }).join('');
+    }
+
+    function mudarPagina(delta) {
+        const nova = paginaAtual + delta;
+        if (nova < 1) return;
+        pesquisar(nova);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function toggleFavorito(idProposicao, siglaTipo, numero, ano, btn) {
+        const isFav = btn.classList.contains('favoritado');
+        const url = isFav
+            ? `/favoritos/remover/${idProposicao}/`
+            : `/favoritos/adicionar/${idProposicao}/`;
+
+        const body = new FormData();
+        body.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        if (!isFav) {
+            body.append('sigla_tipo', siglaTipo || '');
+            body.append('numero', numero || '');
+            body.append('ano', ano || '');
+        }
+
+        const resp = await fetch(url, { method: 'POST', body });
+        const data = await resp.json();
+
+        if (data.ok) {
+            if (isFav) {
+                btn.classList.remove('favoritado');
+                btn.textContent = '☆ Favoritar';
+                favoritosDoUsuario.delete(String(idProposicao));
+            } else {
+                btn.classList.add('favoritado');
+                btn.textContent = '★ Favoritado';
+                favoritosDoUsuario.add(String(idProposicao));
+            }
+        }
+    }
+
+    // Pesquisa ao pressionar Enter
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('inp-keywords').addEventListener('keydown', e => {
+            if (e.key === 'Enter') pesquisar(1);
+        });
+    });
+</script>
+{% endblock %}

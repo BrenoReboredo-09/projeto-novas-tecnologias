@@ -1,0 +1,234 @@
+{% extends 'camara_app/base.html' %}
+{% block titulo %}Detalhe do Projeto{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container { width: 85%; max-width: 1100px; margin: 40px auto; }
+
+    .detalhe-card {
+        background: white;
+        border: 2px solid #3ca34a;
+        border-radius: 15px;
+        padding: 35px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .detalhe-card h2 { color: #19692c; margin-bottom: 20px; font-size: 1.8rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+    .tag {
+        background: #eef5ef;
+        border: 1px solid #3ca34a;
+        border-radius: 20px;
+        padding: 5px 14px;
+        font-size: 0.9rem;
+        color: #19692c;
+        font-weight: bold;
+    }
+    .ementa { font-size: 1.05rem; color: #333; line-height: 1.6; margin-bottom: 20px; }
+    .btn-fav {
+        background: transparent;
+        border: 2px solid #3ca34a;
+        color: #3ca34a;
+        border-radius: 8px;
+        padding: 10px 22px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+    .btn-fav:hover, .btn-fav.favoritado { background: #3ca34a; color: white; }
+
+    /* Votações */
+    .votacao-item {
+        border-left: 5px solid #3ca34a;
+        background: #f8fff8;
+        padding: 18px 20px;
+        margin-bottom: 14px;
+        border-radius: 8px;
+    }
+    .votacao-item h4 { color: #19692c; margin-bottom: 6px; }
+    .placar { display: flex; gap: 15px; margin-top: 8px; flex-wrap: wrap; }
+    .placar span {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .sim { background: #d4edda; color: #155724; }
+    .nao { background: #f8d7da; color: #721c24; }
+    .abs { background: #fff3cd; color: #856404; }
+
+    /* Tramitação */
+    .tramit-item {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 18px;
+        position: relative;
+        padding-left: 20px;
+    }
+    .tramit-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 6px;
+        width: 12px;
+        height: 12px;
+        background: #3ca34a;
+        border-radius: 50%;
+    }
+    .tramit-data { color: #888; font-size: 0.85rem; white-space: nowrap; min-width: 90px; }
+    .tramit-desc { color: #333; font-size: 0.95rem; line-height: 1.4; }
+    .tramit-orgao { font-weight: bold; color: #19692c; }
+
+    .spinner { text-align: center; padding: 30px; color: #3ca34a; }
+    .erro { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; }
+    @media (max-width: 768px) { .container { width: 95%; } }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div id="detalhe-spinner" class="spinner">⏳ Carregando projeto...</div>
+    <div id="detalhe-wrap" style="display:none">
+
+        <!-- Informações principais -->
+        <div class="detalhe-card">
+            <h2 id="proj-titulo">—</h2>
+            <div class="meta" id="proj-meta"></div>
+            <p class="ementa" id="proj-ementa"></p>
+            {% if user.is_authenticated %}
+            <button class="btn-fav {% if ja_favoritado %}favoritado{% endif %}"
+                    id="btn-fav"
+                    onclick="toggleFav()">
+                {% if ja_favoritado %}★ Favoritado{% else %}☆ Favoritar{% endif %}
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Votações -->
+        <div class="detalhe-card">
+            <h2>🗳️ Votações</h2>
+            <div id="lista-votacoes"><div class="spinner">Carregando...</div></div>
+        </div>
+
+        <!-- Tramitação -->
+        <div class="detalhe-card">
+            <h2>📋 Tramitação</h2>
+            <div id="lista-tramitacao"><div class="spinner">Carregando...</div></div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ID_PROPOSICAO = {{ id_proposicao }};
+let dadosProp = null;
+
+async function carregarTudo() {
+    try {
+        // Detalhe
+        const res = await camaraAPI.detalheProposicao(ID_PROPOSICAO);
+        dadosProp = res.dados;
+        renderDetalhe(dadosProp);
+
+        // Votações e tramitação em paralelo
+        const [resVot, resTram] = await Promise.all([
+            camaraAPI.buscarVotacoes({ idProposicao: ID_PROPOSICAO }),
+            camaraAPI.tramitacaoProposicao(ID_PROPOSICAO),
+        ]);
+        renderVotacoes(resVot.dados);
+        renderTramitacao(resTram.dados);
+
+    } catch (err) {
+        document.getElementById('detalhe-spinner').innerHTML =
+            `<div class="erro">Erro ao carregar: ${err.message}</div>`;
+    }
+}
+
+function renderDetalhe(p) {
+    document.getElementById('detalhe-spinner').style.display = 'none';
+    document.getElementById('detalhe-wrap').style.display = 'block';
+
+    document.getElementById('proj-titulo').textContent =
+        `${p.siglaTipo} ${p.numero}/${p.ano}`;
+
+    const situacao = p.statusProposicao?.descricaoSituacao || '—';
+    const orgao    = p.statusProposicao?.siglaOrgao || '';
+    document.getElementById('proj-meta').innerHTML = `
+        <span class="tag">${p.siglaTipo}</span>
+        <span class="tag">${p.ano}</span>
+        ${orgao ? `<span class="tag">${orgao}</span>` : ''}
+        <span class="tag">${situacao}</span>
+    `;
+    document.getElementById('proj-ementa').textContent = p.ementa || '—';
+}
+
+async function renderVotacoes(votacoes) {
+    const el = document.getElementById('lista-votacoes');
+    if (!votacoes.length) { el.innerHTML = '<p style="color:#777">Nenhuma votação registrada.</p>'; return; }
+
+    const html = await Promise.all(votacoes.slice(0, 5).map(async v => {
+        let placarHtml = '';
+        try {
+            const { resumo } = await camaraAPI.votosVotacao(v.id);
+            placarHtml = `
+                <div class="placar">
+                    <span class="sim">✅ Sim: ${resumo.Sim}</span>
+                    <span class="nao">❌ Não: ${resumo['Não']}</span>
+                    <span class="abs">➖ Abstenção: ${resumo['Abstenção']}</span>
+                </div>`;
+        } catch {}
+        const data = v.dataHoraInicio ? v.dataHoraInicio.substring(0,10) : '—';
+        return `
+        <div class="votacao-item">
+            <h4>${v.descricao || 'Votação'} – ${data}</h4>
+            <p>Resultado: <strong>${v.aprovacao === 1 ? '✅ Aprovado' : v.aprovacao === 0 ? '❌ Rejeitado' : '—'}</strong></p>
+            ${placarHtml}
+        </div>`;
+    }));
+    el.innerHTML = html.join('');
+}
+
+function renderTramitacao(tramitacoes) {
+    const el = document.getElementById('lista-tramitacao');
+    if (!tramitacoes.length) { el.innerHTML = '<p style="color:#777">Sem histórico de tramitação.</p>'; return; }
+    el.innerHTML = tramitacoes.slice(0, 20).map(t => `
+        <div class="tramit-item">
+            <div class="tramit-data">${t.dataHora ? t.dataHora.substring(0,10) : '—'}</div>
+            <div>
+                <div class="tramit-orgao">${t.siglaOrgao || ''}</div>
+                <div class="tramit-desc">${t.descricaoSituacao || t.despacho || '—'}</div>
+            </div>
+        </div>`).join('');
+}
+
+async function toggleFav() {
+    const btn = document.getElementById('btn-fav');
+    const isFav = btn.classList.contains('favoritado');
+    const url = isFav
+        ? `/favoritos/remover/${ID_PROPOSICAO}/`
+        : `/favoritos/adicionar/${ID_PROPOSICAO}/`;
+
+    const body = new FormData();
+    body.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    if (!isFav && dadosProp) {
+        body.append('sigla_tipo', dadosProp.siglaTipo || '');
+        body.append('numero', dadosProp.numero || '');
+        body.append('ano', dadosProp.ano || '');
+        body.append('ementa', (dadosProp.ementa || '').substring(0, 300));
+        body.append('situacao', dadosProp.statusProposicao?.descricaoSituacao || '');
+    }
+
+    const resp = await fetch(url, { method: 'POST', body });
+    const data = await resp.json();
+    if (data.ok) {
+        btn.classList.toggle('favoritado');
+        btn.textContent = btn.classList.contains('favoritado') ? '★ Favoritado' : '☆ Favoritar';
+    }
+}
+
+carregarTudo();
+</script>
+{% endblock %}

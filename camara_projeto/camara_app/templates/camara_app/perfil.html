@@ -1,0 +1,123 @@
+{% extends 'camara_app/base.html' %}
+{% block titulo %}Meu Perfil{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        width: 80%;
+        max-width: 1200px;
+        margin: 50px auto;
+    }
+    .perfil {
+        background: white;
+        border: 2px solid #3ca34a;
+        border-radius: 15px;
+        padding: 40px;
+        display: flex;
+        align-items: center;
+        gap: 40px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .foto-perfil {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 4px solid #3ca34a;
+        object-fit: cover;
+        background: #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: #3ca34a;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    .dados-usuario h2 { color: #19692c; font-size: 2rem; margin-bottom: 10px; }
+    .dados-usuario p  { font-size: 1.1rem; color: #555; }
+    .favoritos {
+        background: white;
+        border: 2px solid #3ca34a;
+        border-radius: 15px;
+        padding: 40px;
+    }
+    .favoritos h2 { color: #19692c; margin-bottom: 25px; font-size: 2rem; }
+    .projeto {
+        border-left: 6px solid #3ca34a;
+        background: #f8fff8;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    .projeto h3 { color: #19692c; margin-bottom: 8px; }
+    .projeto p  { margin-bottom: 4px; color: #444; }
+    .status { font-weight: bold; color: #2e8b3c; }
+    .btn-desfavoritar {
+        background: transparent;
+        border: 2px solid #cc3333;
+        color: #cc3333;
+        border-radius: 6px;
+        padding: 6px 14px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        transition: 0.2s;
+    }
+    .btn-desfavoritar:hover { background: #cc3333; color: white; }
+    .vazio { color: #777; font-style: italic; }
+    @media (max-width: 768px) {
+        .perfil { flex-direction: column; text-align: center; }
+        .container { width: 95%; }
+    }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+
+    <div class="perfil">
+        <div class="foto-perfil">
+            {{ user.username|first|upper }}
+        </div>
+        <div class="dados-usuario">
+            <h2>{{ user.get_full_name|default:user.username }}</h2>
+            <p>{{ user.email }}</p>
+            <p>Usuário cadastrado na plataforma de acompanhamento legislativo.</p>
+        </div>
+    </div>
+
+    <div class="favoritos">
+        <h2>Projetos Favoritados</h2>
+
+        {% if favoritos %}
+            {% for fav in favoritos %}
+            <div class="projeto" id="fav-{{ fav.id_proposicao }}">
+                <div>
+                    <h3>
+                        <a href="{% url 'detalhe' fav.id_proposicao %}" style="color:#19692c;text-decoration:none;">
+                            {{ fav.sigla_tipo }} {{ fav.numero }}/{{ fav.ano }}
+                        </a>
+                    </h3>
+                    <p>{{ fav.ementa }}</p>
+                    <p class="status">Status: {{ fav.situacao }}</p>
+                </div>
+                <form method="post" action="{% url 'desfavoritar' fav.id_proposicao %}">
+                    {% csrf_token %}
+                    <button class="btn-desfavoritar" type="submit">♡ Remover</button>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="vazio">Você ainda não favoritou nenhum projeto. 
+                <a href="{% url 'principal' %}" style="color:#19692c;">Pesquisar projetos</a>
+            </p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

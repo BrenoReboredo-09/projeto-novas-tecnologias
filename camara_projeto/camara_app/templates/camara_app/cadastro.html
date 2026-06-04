@@ -1,0 +1,117 @@
+{% extends 'camara_app/base.html' %}
+{% block titulo %}Cadastro – Sistema de Projetos de Lei{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+    }
+    .card {
+        width: 100%;
+        max-width: 1000px;
+        background: white;
+        border: 2px solid #3ca34a;
+        border-radius: 15px;
+        overflow: hidden;
+        display: flex;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+    .painel-esquerdo {
+        width: 35%;
+        background: #3ca34a;
+        color: white;
+        padding: 50px 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+    .painel-esquerdo h2 { font-size: 2rem; margin-bottom: 20px; }
+    .painel-esquerdo p  { margin-bottom: 30px; }
+    .painel-esquerdo a {
+        display: inline-block;
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+        padding: 14px 40px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    .painel-esquerdo a:hover { background: white; color: #3ca34a; }
+    .painel-direito { width: 65%; padding: 50px; }
+    .painel-direito h2 {
+        text-align: center;
+        color: #2e8b3c;
+        margin-bottom: 35px;
+        font-size: 2rem;
+    }
+    .campo { margin-bottom: 20px; }
+    .campo input {
+        width: 100%;
+        padding: 16px;
+        border: 2px solid #3ca34a;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    .campo input:focus { outline: none; border-color: #1f6b2b; }
+    .btn-cadastrar {
+        width: 100%;
+        padding: 16px;
+        background: #3ca34a;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: 0.3s;
+    }
+    .btn-cadastrar:hover { background: #2f853b; }
+    @media (max-width: 768px) {
+        .card { flex-direction: column; }
+        .painel-esquerdo, .painel-direito { width: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<div class="container">
+    <div class="card">
+
+        <div class="painel-esquerdo">
+            <h2>Bem-vindo de volta</h2>
+            <p>Acesse sua conta para acompanhar projetos e pesquisas.</p>
+            <a href="{% url 'login' %}">Entrar</a>
+        </div>
+
+        <div class="painel-direito">
+            <h2>Crie sua Conta</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="campo">
+                    <input type="text" name="username" placeholder="Nome de usuário" required>
+                </div>
+                <div class="campo">
+                    <input type="email" name="email" placeholder="E-mail" required>
+                </div>
+                <div class="campo">
+                    <input type="password" name="password1" placeholder="Senha" required>
+                </div>
+                <div class="campo">
+                    <input type="password" name="password2" placeholder="Confirme a senha" required>
+                </div>
+                <button class="btn-cadastrar" type="submit">Cadastrar</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

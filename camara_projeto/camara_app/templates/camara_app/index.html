@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Projetos de Lei – Câmara dos Deputados</title>
+  <!--
+    INTEGRAÇÃO COM SEU HTML EXISTENTE:
+    Basta adicionar o script camara_api.js antes de fechar o </body>
+    e conectar os elementos do seu formulário às funções abaixo.
+  -->
+  <link rel="stylesheet" href="{% static 'camara_app/css/main.css' %}">
+</head>
+<body>
+
+  <!-- ░░ Cole aqui o seu HTML existente de pesquisa ░░ -->
+
+  <!-- Exemplo mínimo de uso: -->
+  <input id="input-keywords" type="text" placeholder="Reforma tributária…">
+  <select id="input-tipo">
+    <option value="">Todos os tipos</option>
+    <option value="PL">PL – Projeto de Lei</option>
+    <option value="PEC">PEC – Emenda Constitucional</option>
+    <option value="MPV">MPV – Medida Provisória</option>
+    <option value="PDL">PDL – Decreto Legislativo</option>
+  </select>
+  <input id="input-ano" type="number" placeholder="Ano">
+  <button onclick="pesquisar()">Pesquisar</button>
+
+  <div id="resultado"></div>
+
+  <script src="{% static 'camara_app/js/camara_api.js' %}"></script>
+  <script>
+    async function pesquisar() {
+      const keywords = document.getElementById('input-keywords').value;
+      const siglaTipo = document.getElementById('input-tipo').value;
+      const ano = document.getElementById('input-ano').value;
+      const el = document.getElementById('resultado');
+
+      el.innerHTML = '<p>Carregando…</p>';
+
+      try {
+        const { dados, total } = await camaraAPI.buscarProposicoes({ keywords, siglaTipo, ano });
+
+        if (!dados.length) {
+          el.innerHTML = '<p>Nenhuma proposição encontrada.</p>';
+          return;
+        }
+
+        el.innerHTML = dados.map(p => `
+          <article>
+            <h3>
+              <a href="/proposicao/${p.id}/">${p.siglaTipo} ${p.numero}/${p.ano}</a>
+            </h3>
+            <p>${p.ementa || '—'}</p>
+            <small>Situação: ${p.statusProposicao?.descricaoSituacao || '—'}</small>
+          </article>
+        `).join('');
+
+      } catch (err) {
+        el.innerHTML = `<p style="color:red">Erro: ${err.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
